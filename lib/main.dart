@@ -177,13 +177,22 @@ class _ChatPageState extends State<ChatPage> {
   }
   bool _containsMarkdownTable(String content) {
     List<String> lines = content.split('\n');
+    int tableLines = 0;
+    int totalLines = lines.length;
+
     for (String line in lines) {
       line = line.trim();
+      if (line.isEmpty) continue;
       if (line.startsWith('|') && line.endsWith('|') && line.split('|').length > 2) {
-        return true;
+        tableLines++;
+      } else if (line.contains('---') || line.contains('===')) {
+        // Separator lines are part of table
+        tableLines++;
       }
     }
-    return false;
+
+    // Only treat as table if most lines are table-related (more than 70%)
+    return tableLines > 0 && (tableLines / totalLines) > 0.7;
   }
 
   List<List<String>> _parseMarkdownTable(String content) {
@@ -494,7 +503,8 @@ class _ChatPageState extends State<ChatPage> {
     List<List<String>> rows = _parseMarkdownTable(markdownContent);
     return Container(
       constraints: BoxConstraints(
-        maxWidth: MediaQuery.of(context).size.width * 0.8,
+        maxWidth: MediaQuery.of(context).size.width * 0.9,
+        maxHeight: MediaQuery.of(context).size.height * 0.5,
       ),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -502,28 +512,41 @@ class _ChatPageState extends State<ChatPage> {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey[300]!),
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Table(
-          border: TableBorder.all(color: Colors.grey[400]!, width: 1),
-          defaultColumnWidth: const IntrinsicColumnWidth(),
-          children: rows.asMap().entries.map((entry) {
-            int i = entry.key;
-            List<String> row = entry.value;
-            return TableRow(
-              children: row.map((cell) => Container(
-                padding: const EdgeInsets.all(8),
-                color: i == 0 ? Colors.grey[200] : Colors.white,
-                child: Text(
-                  cell,
-                  style: TextStyle(
-                    color: Colors.black87,
-                    fontWeight: i == 0 ? FontWeight.bold : FontWeight.normal,
-                  ),
-                ),
-              )).toList(),
-            );
-          }).toList(),
+      child: Scrollbar(
+        thumbVisibility: true,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Table(
+              border: TableBorder.all(color: Colors.grey[400]!, width: 1),
+              defaultColumnWidth: const FixedColumnWidth(80.0), // Fixed width per column
+              children: rows.asMap().entries.map((entry) {
+                int i = entry.key;
+                List<String> row = entry.value;
+                return TableRow(
+                  children: row.map((cell) => Container(
+                    constraints: const BoxConstraints(
+                      maxWidth: 80.0, // Max width for text wrapping
+                    ),
+                    padding: const EdgeInsets.all(8),
+                    color: i == 0 ? Colors.grey[200] : (i % 2 == 1 ? Colors.grey[50] : Colors.white),
+                    child: Text(
+                      cell,
+                      style: TextStyle(
+                        color: Colors.black87,
+                        fontWeight: i == 0 ? FontWeight.bold : FontWeight.normal,
+                        fontSize: 12,
+                      ),
+                      softWrap: true,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 3, // Limit lines to prevent excessive height
+                    ),
+                  )).toList(),
+                );
+              }).toList(),
+            ),
+          ),
         ),
       ),
     );
