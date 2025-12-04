@@ -64,10 +64,10 @@ class _ChatPageState extends State<ChatPage> {
       
       var response = await http.get(Uri.parse(url));
 
-      print('📥 Response Status Code: ${response.statusCode}');
-      print('📥 Response Headers: ${response.headers}');
+      //print('📥 Response Status Code: ${response.statusCode}');
+      //print('📥 Response Headers: ${response.headers}');
       print('📥 Raw Response Body: ${response.body}');
-      print('📥 Raw Response Body Length: ${response.body.length}');
+      //print('📥 Raw Response Body Length: ${response.body.length}');
       
       if (response.statusCode == 200) {
         String resp = response.body;
@@ -111,7 +111,7 @@ class _ChatPageState extends State<ChatPage> {
         }
         
         print('📤 Final message type: $type');
-        print('📤 Message content preview: ${resp.substring(0, resp.length > 100 ? 100 : resp.length)}${resp.length > 100 ? '...' : ''}');
+        //print('📤 Message content preview: ${resp.substring(0, resp.length > 100 ? 100 : resp.length)}${resp.length > 100 ? '...' : ''}');
         
         setState(() {
           messages.add(Message(type, resp, false, imageData: imageData));
